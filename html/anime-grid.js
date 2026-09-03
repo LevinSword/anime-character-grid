@@ -269,14 +269,15 @@ const setInputText = ()=>{
     setCurrentBangumi(text);
 }
 
-// 图片走自家 Vercel 代理，带 CORS 头，才能画进 canvas
+// 存储保持 AniList 原始 URL，画进 canvas 时才走自家代理（带 CORS 头，避免画布污染）
 const base = '/api/img/s4.anilist.co'
+const toProxyURL = url => url.replace(/^https:\/\/s4\.anilist\.co/, base);
 
 animeListEl.onclick = e=>{
     const url = e.target.firstChild.src;
     if(currentBangumiIndex === null) return;
     const urlObj = new URL(url)
-    setCurrentBangumi(base + urlObj.pathname);
+    setCurrentBangumi('https://s4.anilist.co' + urlObj.pathname);
 };
 
 
@@ -340,7 +341,7 @@ const drawBangumis = ()=>{
             continue;
         }
         
-        loadImage(urlOrString,el=>{
+        loadImage(toProxyURL(urlOrString),el=>{
             const { naturalWidth, naturalHeight } = el;
             const originRatio = el.naturalWidth / el.naturalHeight;
 
