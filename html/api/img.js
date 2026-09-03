@@ -4,7 +4,7 @@
 
 export const config = { runtime: 'edge' };
 
-const ALLOWED_HOSTS = new Set(['s4.anilist.co']);
+const ALLOWED_HOSTS = new Set(['s4.anilist.co', 'lain.bgm.tv']);
 
 export default async function handler(request) {
   const { searchParams } = new URL(request.url);

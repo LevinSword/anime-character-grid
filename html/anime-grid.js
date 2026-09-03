@@ -18,7 +18,8 @@ query ( $page: Int, $perPage: Int, $search: String) {
 `;
 
 const graphQLGet = async (keyword)=>{
-    if(Caches[keyword]) return Caches[keyword];
+    if(!keyword) return [];
+    if(Caches['ani_' + keyword]) return Caches['ani_' + keyword];
     htmlEl.setAttribute('data-no-touch',true);
     var variables = {
         search: keyword,
@@ -35,16 +36,60 @@ const graphQLGet = async (keyword)=>{
             variables: variables
         })
     };
-    const f = await fetch(url, options);
-    const data = await f.json();
-    Caches[keyword] = data.data.Page.characters;
-    console.log(data)
+    try {
+        const f = await fetch(url, options);
+        const data = await f.json();
+        Caches['ani_' + keyword] = data?.data?.Page?.characters || [];
+    } catch(err) {
+        console.error('AniList search failed:', err);
+        Caches['ani_' + keyword] = [];
+    }
     htmlEl.setAttribute('data-no-touch',false);
-    return Caches[keyword];
+    return Caches['ani_' + keyword];
 }
 
-const get = async (url)=>{
+const bangumiSearch = async (keyword)=>{
+    if(!keyword) return [];
+    const cacheKey = 'bgm_' + keyword;
+    if(Caches[cacheKey]) return Caches[cacheKey];
+    htmlEl.setAttribute('data-no-touch',true);
 
+    let characters = [];
+    // 1. 优先尝试本地 Edge 代理 /api/bangumi（部署在 Vercel 时可用）
+    try {
+        const res = await fetch('/api/bangumi?keyword=' + encodeURIComponent(keyword));
+        if(res.ok){
+            const data = await res.json();
+            characters = data.data || [];
+        } else {
+            throw new Error('Proxy status: ' + res.status);
+        }
+    } catch (e) {
+        // 2. 本地代理不可用（如本地静态文件直接打开），尝试直连官方 API
+        try {
+            const res = await fetch('https://api.bgm.tv/v0/search/characters', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ keyword })
+            });
+            if(res.ok){
+                const data = await res.json();
+                characters = data.data || [];
+            }
+        } catch (err) {
+            console.error('Bangumi direct search failed:', err);
+        }
+    }
+
+    htmlEl.setAttribute('data-no-touch',false);
+    Caches[cacheKey] = characters;
+    return characters;
+};
+
+const get = async (url)=>{
     if(Caches[url]) return Caches[url];
     htmlEl.setAttribute('data-no-touch',true);
     const f = await fetch(url);
@@ -159,7 +204,7 @@ ctx.textBaseline = 'middle';
 ctx.lineCap  = 'round';
 ctx.lineJoin = 'round';
 ctx.fillText(
-    '框架 @卜卜口 · 魔改 @ SSShooter · 动画信息来自 anilist.co · 禁止商业、盈利用途',
+    '框架 @卜卜口 · 魔改 @ SSShooter · 角色数据来自 Bangumi / AniList · 禁止商业、盈利用途',
     19 * scale,
     (height - 10) * scale
 );
@@ -252,7 +297,7 @@ const closeSearchBox = ()=>{
     htmlEl.setAttribute('data-no-scroll',false);
     searchBoxEl.setAttribute('data-show',false);
     searchInputEl.value = '';
-    formEl.onsubmit();
+    animeListEl.innerHTML = '';
 };
 
 const setCurrentBangumi =  (value)=>{
@@ -269,34 +314,119 @@ const setInputText = ()=>{
     setCurrentBangumi(text);
 }
 
-// 存储保持 AniList 原始 URL，画进 canvas 时才走自家代理（带 CORS 头，避免画布污染）
+// 存储保持原始 URL，画进 canvas 时才走自家代理（带 CORS 头，避免画布污染）
 // 代理用查询参数式（Vercel 的 catch-all 文件路由不可靠）
 const toProxyURL = url => {
-    const u = new URL(url);
-    return '/api/img?host=' + u.hostname + '&path=' + encodeURIComponent(u.pathname);
+    if (!url) return '';
+    try {
+        const u = new URL(url);
+        if (window.location.protocol.startsWith('http') && (u.hostname === 's4.anilist.co' || u.hostname === 'lain.bgm.tv')) {
+            return '/api/img?host=' + u.hostname + '&path=' + encodeURIComponent(u.pathname + u.search);
+        }
+        return url;
+    } catch(e) {
+        return url;
+    }
 };
+
+const sourceStorageKey = 'anime-grid-search-source';
+let currentSource = localStorage.getItem(sourceStorageKey) || 'bangumi';
+
+const sourceBtns = document.querySelectorAll('.source-btn');
+
+const updateSourceUI = () => {
+    sourceBtns.forEach(btn => {
+        if (btn.dataset.source === currentSource) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    if (currentSource === 'bangumi') {
+        searchInputEl.placeholder = '输入中文/日文/英文角色名搜索（推荐中文）';
+    } else {
+        searchInputEl.placeholder = '输入日文罗马音/日文汉字/英文搜索';
+    }
+};
+
+sourceBtns.forEach(btn => {
+    btn.onclick = () => {
+        const newSource = btn.dataset.source;
+        if (newSource === currentSource) return;
+        currentSource = newSource;
+        localStorage.setItem(sourceStorageKey, currentSource);
+        updateSourceUI();
+        if (searchInputEl.value.trim()) {
+            formEl.onsubmit();
+        }
+    };
+});
+updateSourceUI();
 
 animeListEl.onclick = e=>{
-    const url = e.target.firstChild.src;
-    if(currentBangumiIndex === null) return;
-    const urlObj = new URL(url)
-    setCurrentBangumi('https://s4.anilist.co' + urlObj.pathname);
+    const item = e.target.closest('.anime-item');
+    if (!item || currentBangumiIndex === null) return;
+    const url = item.dataset.url;
+    if (url) {
+        setCurrentBangumi(url);
+    }
 };
 
-
 const searchFromAPI = async keyword=>{
-    const animes = await graphQLGet(keyword);
-    resetAnimeList(animes);
+    if (!keyword) {
+        animeListEl.innerHTML = '';
+        return;
+    }
+    animeListEl.innerHTML = '<div class="no-result">正在搜索角色...</div>';
+
+    if (currentSource === 'bangumi') {
+        const characters = await bangumiSearch(keyword);
+        resetBangumiList(characters);
+    } else {
+        const characters = await graphQLGet(keyword);
+        resetAniList(characters);
+    }
 }
 
-const resetAnimeList = animes=>{
-    console.log('animes',animes)
-    animeListEl.innerHTML = animes
-        .filter(character => character?.image?.medium)
-        .map(anime=>{
-            return `<div class="anime-item" data-id="${anime.image.medium}"><img src="${anime.image.medium}"><h3>${anime.name.native || anime.name.full}</h3></div>`;
+const resetBangumiList = characters => {
+    if (!characters || characters.length === 0) {
+        animeListEl.innerHTML = '<div class="no-result">未在 Bangumi 找到相关角色，可尝试更换关键词或切换数据源</div>';
+        return;
+    }
+    animeListEl.innerHTML = characters
+        .filter(char => {
+            return !!(char?.images?.medium || char?.images?.grid || char?.images?.large || char?.images?.small);
+        })
+        .map(char => {
+            const img = char.images.medium || char.images.grid || char.images.large || char.images.small;
+            let cnName = '';
+            if (Array.isArray(char.infobox)) {
+                const item = char.infobox.find(i => i && (i.key === '简体中文名' || i.key === '中文名'));
+                if (item && typeof item.value === 'string' && item.value.trim()) {
+                    cnName = item.value.trim();
+                }
+            }
+            const mainName = cnName || char.name;
+            const subName = (cnName && char.name && cnName !== char.name) ? `<span class="sub-name">(${char.name})</span>` : '';
+            return `<div class="anime-item" data-url="${img}"><img src="${img}"><h3>${mainName}${subName}</h3></div>`;
         }).join('');
-}
+};
+
+const resetAniList = characters => {
+    if (!characters || characters.length === 0) {
+        animeListEl.innerHTML = '<div class="no-result">未在 AniList 找到相关角色，可尝试更换关键词或切换数据源</div>';
+        return;
+    }
+    animeListEl.innerHTML = characters
+        .filter(character => character?.image?.medium)
+        .map(anime => {
+            const img = anime.image.medium;
+            const mainName = anime.name.native || anime.name.full;
+            const subName = (anime.name.native && anime.name.full && anime.name.native !== anime.name.full)
+                ? `<span class="sub-name">(${anime.name.full})</span>` : '';
+            return `<div class="anime-item" data-url="${img}"><img src="${img}"><h3>${mainName}${subName}</h3></div>`;
+        }).join('');
+};
 
 formEl.onsubmit = e=>{
     if(e) e.preventDefault();

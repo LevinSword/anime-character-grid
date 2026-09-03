@@ -17,12 +17,15 @@
     </div>
     <div class="search-bangumis-box ui-shadow" data-show="false">
         <div class="content-box">
+            <div class="source-switcher">
+                <button type="button" class="source-btn active" data-source="bangumi">Bangumi（支持中文）</button>
+                <button type="button" class="source-btn" data-source="anilist">AniList（日文/英文）</button>
+            </div>
             <form>
-                <input type="text" placeholder="输入汉字/罗马音/英文搜索">
+                <input type="text" placeholder="输入中文/日文/英文角色名搜索">
             </form>
             <div class="anime-list"></div>
             <div class="foot">
-                <!-- <a class="close ui-btn" onclick="searchFromBangumi()">在番组计划搜索</a> -->
                 <a class="close ui-btn" onclick="setInputText()">没找到，就用搜索框里的文字了</a>
                 <a class="close ui-btn current" onclick="closeSearchBox()">取消设定</a>
             </div>
@@ -43,7 +46,7 @@
     <footer>
         <a href="https://github.com/ssshooter" target="_blank">@SSShooter</a>
         <a href="https://github.com/itorr/anime-grid" target="_blank">Fork from GitHub @卜卜口</a>
-        <span>动画信息来自 <a href="https://anilist.co/" target="_blank">anilist.co</a></span>
+        <span>动画角色信息来自 <a href="https://bgm.tv/" target="_blank">Bangumi</a> & <a href="https://anilist.co/" target="_blank">anilist.co</a></span>
         <a href="https://vs.ssshooter.com/" target="_blank">我打宿傩生成器🤡👈</a>
     </footer>
     <script src="anime-grid.js"></script>

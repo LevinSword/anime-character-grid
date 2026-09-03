@@ -107,6 +107,27 @@ footer > * {
   display: block;
   border-radius: 2px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+.source-switcher {
+  display: flex;
+  padding: 8px 8px 0;
+  gap: 8px;
+}
+.source-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: 2px solid #222;
+  background: #FFF;
+  color: #222;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: background 0.15s, color 0.15s;
+}
+.source-btn.active {
+  background: #222;
+  color: #FFF;
 }
 .search-bangumis-box form {
   padding: 8px 8px 0;
@@ -165,6 +186,20 @@ footer > * {
   height: 32px;
   overflow: hidden;
   word-break: break-all;
+}
+.anime-list .anime-item h3 .sub-name {
+  font-size: 11px;
+  color: #888;
+  font-weight: normal;
+  display: block;
+}
+.anime-list .no-result {
+  width: 100%;
+  padding: 30px 10px;
+  color: #888;
+  font-size: 14px;
+  text-align: center;
+  box-sizing: border-box;
 }
 @media (max-width: 412px) {
   .anime-list .anime-item {
