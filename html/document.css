@@ -107,6 +107,7 @@ footer > * {
   display: block;
   border-radius: 2px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
 .source-switcher {
   display: flex;
   padding: 8px 8px 0;
@@ -182,16 +183,25 @@ footer > * {
 .anime-list .anime-item h3 {
   margin: 4px 0;
   font-size: 14px;
-  line-height: 16px;
-  height: 32px;
+  line-height: 18px;
+  height: 36px;
   overflow: hidden;
-  word-break: break-all;
+}
+.anime-list .anime-item h3 .main-name {
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 .anime-list .anime-item h3 .sub-name {
   font-size: 11px;
+  line-height: 16px;
   color: #888;
   font-weight: normal;
   display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 .anime-list .no-result {
   width: 100%;

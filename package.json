@@ -1,0 +1,10 @@
+{
+  "name": "anime-character-grid",
+  "version": "1.0.0",
+  "description": "动画角色个人喜好表生成器",
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.js",
+    "start": "node dev-server.js"
+  }
+}

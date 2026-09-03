@@ -408,7 +408,7 @@ const resetBangumiList = characters => {
             }
             const mainName = cnName || char.name;
             const subName = (cnName && char.name && cnName !== char.name) ? `<span class="sub-name">(${char.name})</span>` : '';
-            return `<div class="anime-item" data-url="${img}"><img src="${img}"><h3>${mainName}${subName}</h3></div>`;
+            return `<div class="anime-item" data-url="${img}"><img src="${img}"><h3><span class="main-name">${mainName}</span>${subName}</h3></div>`;
         }).join('');
 };
 
@@ -424,7 +424,7 @@ const resetAniList = characters => {
             const mainName = anime.name.native || anime.name.full;
             const subName = (anime.name.native && anime.name.full && anime.name.native !== anime.name.full)
                 ? `<span class="sub-name">(${anime.name.full})</span>` : '';
-            return `<div class="anime-item" data-url="${img}"><img src="${img}"><h3>${mainName}${subName}</h3></div>`;
+            return `<div class="anime-item" data-url="${img}"><img src="${img}"><h3><span class="main-name">${mainName}</span>${subName}</h3></div>`;
         }).join('');
 };
 

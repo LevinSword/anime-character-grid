@@ -198,15 +198,24 @@ footer{
         h3{
             margin: 4px 0;
             font-size: 14px;
-            line-height: 16px;
-            height: 32px;
+            line-height: 18px;
+            height: 36px;
             overflow: hidden;
-            word-break: break-all;
+            .main-name{
+                display: block;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
             .sub-name{
                 font-size: 11px;
+                line-height: 16px;
                 color: #888;
                 font-weight: normal;
                 display: block;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
             }
         }
     }
