@@ -270,8 +270,11 @@ const setInputText = ()=>{
 }
 
 // 存储保持 AniList 原始 URL，画进 canvas 时才走自家代理（带 CORS 头，避免画布污染）
-const base = '/api/img/s4.anilist.co'
-const toProxyURL = url => url.replace(/^https:\/\/s4\.anilist\.co/, base);
+// 代理用查询参数式（Vercel 的 catch-all 文件路由不可靠）
+const toProxyURL = url => {
+    const u = new URL(url);
+    return '/api/img?host=' + u.hostname + '&path=' + encodeURIComponent(u.pathname);
+};
 
 animeListEl.onclick = e=>{
     const url = e.target.firstChild.src;

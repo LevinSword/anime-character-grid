@@ -1,26 +1,24 @@
-// 图片代理 Edge Function
-// 用法: /api/img/<host>/<path>
-// 例:  /api/img/s4.anilist.co/file/anilistcdn/character/medium/xxx.jpg
-// 只允许白名单内的域名，避免被当成开放代理滥用
+// 图片代理 Edge Function（查询参数式，规避 Vercel catch-all 文件路由不可靠的坑）
+// 用法: /api/img?host=s4.anilist.co&path=/file/anilistcdn/character/medium/xxx.jpg
+// host 只允许白名单内的域名，避免被当成开放代理滥用
 
 export const config = { runtime: 'edge' };
 
 const ALLOWED_HOSTS = new Set(['s4.anilist.co']);
 
 export default async function handler(request) {
-  const { pathname, search } = new URL(request.url);
-  const match = pathname.match(/^\/api\/img\/([^/]+)(\/.*)?$/);
+  const { searchParams } = new URL(request.url);
+  const host = searchParams.get('host');
+  const path = searchParams.get('path');
 
-  if (!match) {
-    return new Response('Not Found', { status: 404 });
+  if (!host || !path || !path.startsWith('/')) {
+    return new Response('Missing host or path', { status: 400 });
   }
-
-  const host = match[1];
   if (!ALLOWED_HOSTS.has(host)) {
     return new Response('Forbidden', { status: 403 });
   }
 
-  const target = `https://${host}${match[2] || '/'}${search}`;
+  const target = `https://${host}${path}`;
 
   const upstream = await fetch(target, {
     headers: {
