@@ -269,7 +269,9 @@ const setInputText = ()=>{
     setCurrentBangumi(text);
 }
 
-const base = 'https://img-proxy.onrender.com/anilist'
+// 图片走自家 Vercel 代理，带 CORS 头，才能画进 canvas
+const base = '/api/img/s4.anilist.co'
+
 animeListEl.onclick = e=>{
     const url = e.target.firstChild.src;
     if(currentBangumiIndex === null) return;
